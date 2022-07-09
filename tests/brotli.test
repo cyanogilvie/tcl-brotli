@@ -1,0 +1,18 @@
+if {[lsearch [namespace children] ::tcltest] == -1} {
+    package require tcltest
+    namespace import ::tcltest::*
+}
+
+package require brotli
+
+test compress-1.1 {Basic compress case} -body { #<<<
+	expr {[string length [broti::compress [string repeat a 1024]]] < 1024}
+} -result 1
+#>>>
+
+
+# cleanup
+::tcltest::cleanupTests
+return
+
+# vim: ft=tcl foldmethod=marker foldmarker=<<<,>>> ts=4 shiftwidth=4
