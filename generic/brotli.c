@@ -1,11 +1,13 @@
 #include "brotliInt.h"
 
+//#define STRINGIFY(x) #x
+
 // Internal API {{{
 //}}}
 // Stubs API {{{
 //}}}
 
-static int compress_cmd(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj* const obv[]) //{{{
+static int compress_cmd(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]) //{{{
 {
 	int					retcode = TCL_OK;
 	int					i, index;
@@ -22,7 +24,7 @@ static int compress_cmd(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj*
 		TBROTLI_COMPRESS_WINDOW,
 		TBROTLI_COMPRESS_LARGEWINDOW
 	};
-	const char*		bytes;
+	const unsigned char*		bytes;
 	int				byteslen;
 	static const char*	mode_str[] = {
 		"generic",
@@ -50,7 +52,7 @@ static int compress_cmd(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj*
 
 	bytes = Tcl_GetByteArrayFromObj(objv[objc-1], &byteslen);
 
-	for (i=0; i<objc-1; i++) {
+	for (i=1; i<objc-1; i++) {
 		int opt;
 		TEST_OK_LABEL(done, retcode, Tcl_GetIndexFromObj(interp, objv[i], option_str, "option", TCL_EXACT, &opt));
 		switch (opt) {
@@ -76,13 +78,14 @@ static int compress_cmd(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj*
 		}
 	}
 	if (quality < BROTLI_MIN_QUALITY || quality > BROTLI_MAX_QUALITY)
-		THROW_ERROR_LABEL(done, retcode, "-quality must be in the range " #BROTLI_MIN_QUALITY " - " #BROTLI_MAX_QUALITY);
+		THROW_ERROR_LABEL(done, retcode, "-quality must be in the range " STRINGIFY(BROTLI_MIN_QUALITY) " - " STRINGIFY(BROTLI_MAX_QUALITY));
+
 	if (allow_large_window) {
 		if (window < BROTLI_MIN_WINDOW_BITS || window > BROTLI_LARGE_MAX_WINDOW_BITS)
-			THROW_ERROR_LABEL(done, retcode, "-window must be in the range " #BROTLI_MIN_WINDOW_BITS " - " #BROTLI_LARGE_MAX_WINDOW_BITS);
+			THROW_ERROR_LABEL(done, retcode, "-window must be in the range " STRINGIFY(BROTLI_MIN_WINDOW_BITS) " - " STRINGIFY(BROTLI_LARGE_MAX_WINDOW_BITS));
 	} else {
 		if (window < BROTLI_MIN_WINDOW_BITS || window > BROTLI_MAX_WINDOW_BITS)
-			THROW_ERROR_LABEL(done, retcode, "-window must be in the range " #BROTLI_MIN_WINDOW_BITS " - " #BROTLI_MAX_WINDOW_BITS);
+			THROW_ERROR_LABEL(done, retcode, "-window must be in the range " STRINGIFY(BROTLI_MIN_WINDOW_BITS) " - " STRINGIFY(BROTLI_MAX_WINDOW_BITS));
 	}
 
 	if (quality >= 2) {
@@ -97,7 +100,7 @@ static int compress_cmd(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj*
 	if (BROTLI_FALSE == BrotliEncoderCompress(quality, window, mode, byteslen, (uint8_t*)bytes, &encoded_size, (uint8_t*)resbuf))
 		THROW_ERROR_LABEL(done, retcode, "Error compressing data");
 
-	Tcl_SetObjResult(interp, Tcl_NewByteArrayObj(resbuf, encoded_size));
+	Tcl_SetObjResult(interp, Tcl_NewByteArrayObj((const unsigned char*)resbuf, encoded_size));
 
 done:
 	if (resbuf) {
@@ -109,7 +112,7 @@ done:
 }
 
 //}}}
-static int decompress_cmd(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj* const obv[]) //{{{
+static int decompress_cmd(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]) //{{{
 {
 	Tcl_SetObjResult(interp, Tcl_ObjPrintf("%s", "Not implemented yet"));
 	return TCL_ERROR;

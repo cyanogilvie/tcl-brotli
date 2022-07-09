@@ -1,4 +1,5 @@
 #include "brotli.h"
+#include "tclstuff.h"
 #include <stdint.h>
 #include <brotli/encode.h>
 #include <brotli/decode.h>

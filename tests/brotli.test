@@ -6,10 +6,18 @@ if {[lsearch [namespace children] ::tcltest] == -1} {
 package require brotli
 
 test compress-1.1 {Basic compress case} -body { #<<<
-	expr {[string length [broti::compress [string repeat a 1024]]] < 1024}
+	expr {[string length [::brotli::compress [string repeat a 1024]]] < 1024}
 } -result 1
 #>>>
 
+if 0 {
+	#set in	[encoding convertto utf-8 [exec cat configure]]
+	set in	[encoding convertto utf-8 [exec cat /tmp/main-built.js]]
+	for {set quality 0} {$quality < 12} {incr quality} {
+		puts stderr " brotli [string length $in] byte string -quality $quality in [timerate {set res [::brotli::compress -quality $quality $in]}] to [string length $res]"
+		puts stderr "deflate [string length $in] byte string   -level [expr {min(9,$quality)}] in [timerate {set res [zlib deflate $in [expr {min(9,$quality)}]]}] to [string length $res]"
+	}
+}
 
 # cleanup
 ::tcltest::cleanupTests

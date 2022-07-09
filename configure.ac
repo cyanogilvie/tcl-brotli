@@ -76,8 +76,8 @@ TEA_SETUP_COMPILER
 TEA_ADD_SOURCES([brotli.c brotliStubInit.c])
 TEA_ADD_HEADERS([generic/brotli.h generic/brotliDecls.h])
 TEA_ADD_INCLUDES([])
-TEA_ADD_LIBS([])
-TEA_ADD_CFLAGS([])
+TEA_ADD_LIBS([`pkg-config --libs libbrotlienc libbrotlidec libbrotlicommon` -lm])
+TEA_ADD_CFLAGS([`pkg-config --cflags libbrotlienc libbrotlidec libbrotlicommon`])
 TEA_ADD_STUB_SOURCES([brotliStubLib.c])
 TEA_ADD_TCL_SOURCES([])
 
