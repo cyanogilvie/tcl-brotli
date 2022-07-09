@@ -41,7 +41,7 @@ static int compress_cmd(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj*
 	int						window = BROTLI_DEFAULT_WINDOW;
 	int						quality = BROTLI_DEFAULT_QUALITY;
 	int						allow_large_window = 0;
-	const char*				resbuf = NULL;
+	uint8_t*				resbuf = NULL;
 	size_t					max_output_len, encoded_size;
 
 	if (objc < 2 || (objc-2) % 2) {
@@ -92,12 +92,14 @@ static int compress_cmd(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj*
 		max_output_len = BrotliEncoderMaxCompressedSize(byteslen);
 		if (max_output_len == 0)
 			THROW_ERROR_LABEL(done, retcode, "Can't calculate output buffer size, too big?");
-		resbuf = ckalloc(max_output_len);
+		resbuf = ckalloc(encoded_size = max_output_len);
 	} else {
-		resbuf = ckalloc(byteslen + 8192);	// TODO: figure out what this should be
+		resbuf = ckalloc(encoded_size = byteslen + 8192);	// TODO: figure out what this should be
 	}
 
-	if (BROTLI_FALSE == BrotliEncoderCompress(quality, window, mode, byteslen, (uint8_t*)bytes, &encoded_size, (uint8_t*)resbuf))
+	if (BROTLI_FALSE == BrotliEncoderCompress(quality, window, mode, byteslen, (uint8_t*)bytes, &encoded_size, resbuf))
+		THROW_ERROR_LABEL(done, retcode, "Error compressing data");
+	if (encoded_size == 0)
 		THROW_ERROR_LABEL(done, retcode, "Error compressing data");
 
 	Tcl_SetObjResult(interp, Tcl_NewByteArrayObj((const unsigned char*)resbuf, encoded_size));

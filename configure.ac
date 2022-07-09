@@ -19,7 +19,7 @@ dnl	to configure the system for the local environment.
 # so that we create the export library with the dll.
 #-----------------------------------------------------------------------
 
-AC_INIT([brotli], [0.1])
+AC_INIT([brotli], [0.2])
 
 #--------------------------------------------------------------------
 # Call TEA_INIT as the first TEA_ macro to set up initial vars.
@@ -76,7 +76,7 @@ TEA_SETUP_COMPILER
 TEA_ADD_SOURCES([brotli.c brotliStubInit.c])
 TEA_ADD_HEADERS([generic/brotli.h generic/brotliDecls.h])
 TEA_ADD_INCLUDES([])
-TEA_ADD_LIBS([`pkg-config --libs libbrotlienc libbrotlidec libbrotlicommon` -lm])
+TEA_ADD_LIBS([`pkg-config --libs libbrotlienc libbrotlidec libbrotlicommon`])
 TEA_ADD_CFLAGS([`pkg-config --cflags libbrotlienc libbrotlidec libbrotlicommon`])
 TEA_ADD_STUB_SOURCES([brotliStubLib.c])
 TEA_ADD_TCL_SOURCES([])
