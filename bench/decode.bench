@@ -1,0 +1,36 @@
+if {"bench" ni [info commands bench]} {
+	package require bench
+	namespace import bench::*
+}
+
+package require brotli
+
+proc readfile fn { #<<<
+	set h	[open $fn r]
+	try {read $h} finally {close $h}
+}
+
+#>>>
+
+proc main {} {
+	bench decode-1.1 {Decompress} -batch auto -setup { #<<<
+		set here	[file dirname [file normalize [info script]]]
+		set val		[encoding convertto utf-8 [readfile [file join $here test.tcl]]]
+		set br_enc	[brotli::compress -quality 9 $val]
+		set gz_enc	[zlib gzip $val -level 9]
+		set size	[string length $val]
+	} -compare {
+		gzip				{ expr {[zlib gunzip $gz_enc] eq $val} }
+		brotli				{ expr {[brotli::decompress $br_enc] eq $val} }
+		brotli_hint_exact	{ expr {[brotli::decompress $br_enc $size] eq $val} }
+		brotli_hint_small	{ expr {[brotli::decompress $br_enc [expr {max(1, $size/3)}]] eq $val} }
+		brotli_hint_big		{ expr {[brotli::decompress $br_enc [expr {$size * 3}]] eq $val} }
+	} -cleanup {
+		unset -nocomplain val br_enc gz_enc size here
+	} -result 1
+	#>>>
+}
+
+main
+
+# vim: ft=tcl foldmethod=marker foldmarker=<<<,>>> ts=4 shiftwidth=4

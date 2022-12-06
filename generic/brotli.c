@@ -114,10 +114,99 @@ done:
 }
 
 //}}}
+void* custom_alloc(void* opaque, size_t size) //{{{
+{
+	ckalloc(size);
+}
+
+//}}}
+void custom_free(void* opaque, void* address) //{{{
+{
+	ckfree(address);
+}
+
+//}}}
 static int decompress_cmd(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]) //{{{
 {
-	Tcl_SetObjResult(interp, Tcl_ObjPrintf("%s", "Not implemented yet"));
-	return TCL_ERROR;
+	int						code = TCL_OK;
+	const unsigned char*	enc_bytes = NULL;
+	int						enc_len;
+	int						sizehint = 0;
+	BrotliDecoderState*		s = NULL;
+	uint8_t*				out = NULL;
+	size_t					available_out = 0, total_out = 0;
+	size_t					available_in;
+	const uint8_t*			next_in = NULL;
+	uint8_t*				next_out = NULL;
+
+	if (objc > 3)
+		CHECK_ARGS(1, "bytes ?sizehint?");
+
+	enc_bytes = Tcl_GetByteArrayFromObj(objv[1], &enc_len);
+
+	if (objc >= 3)
+		TEST_OK_LABEL(finally, code, Tcl_GetIntFromObj(interp, objv[2], &sizehint));
+
+	if (sizehint == 0) {
+		sizehint = 1u << 24;
+	} else if (sizehint < 0) {
+		THROW_ERROR_LABEL(finally, code, "sizehint may not be negative");
+	}
+
+	next_in = enc_bytes;
+	available_in = enc_len;
+
+	out = ckalloc(sizehint);
+	next_out = out;
+	available_out = sizehint;
+
+	s = BrotliDecoderCreateInstance(custom_alloc, custom_free, NULL);
+
+	for (;;) {
+		BrotliDecoderResult	result = BrotliDecoderDecompressStream(s, &available_in, &next_in, &available_out, &next_out, &total_out);
+
+		switch (result) {
+			case BROTLI_DECODER_SUCCESS:
+				goto success;
+
+			case BROTLI_DECODER_RESULT_ERROR:
+				THROW_ERROR_LABEL(finally, code, BrotliDecoderErrorString(BrotliDecoderGetErrorCode(s)));
+
+			case BROTLI_DECODER_RESULT_NEEDS_MORE_INPUT:
+				THROW_ERROR_LABEL(finally, code, "Input is truncated");
+
+			case BROTLI_DECODER_RESULT_NEEDS_MORE_OUTPUT:
+				{
+					uint8_t*	new = NULL;
+
+					sizehint *= 2;
+					new = ckrealloc(out, sizehint);
+
+					next_out = new + (next_out - out);
+					available_out = sizehint - (next_out-new);
+					out = new;
+				}
+				break;
+
+			default:
+				THROW_ERROR_LABEL(finally, code, "Unhandled result from BrotliDecoderDecompressStream");
+		}
+	}
+
+success:
+	Tcl_SetObjResult(interp, Tcl_NewByteArrayObj(out, total_out));
+
+finally:
+	if (s) {
+		BrotliDecoderDestroyInstance(s);
+		s = NULL;
+	}
+	if (out) {
+		ckfree(out);
+		out = NULL;
+	}
+
+	return code;
 }
 
 //}}}

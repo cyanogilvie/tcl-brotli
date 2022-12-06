@@ -3,11 +3,84 @@ if {[lsearch [namespace children] ::tcltest] == -1} {
     namespace import ::tcltest::*
 }
 
+tcltest::loadTestedCommands
 package require brotli
+
+proc readfile fn {
+	set h	[open $fn r]
+	try {read $h} finally {close $h}
+}
 
 test compress-1.1 {Basic compress case} -body { #<<<
 	expr {[string length [::brotli::compress [string repeat a 1024]]] < 1024}
 } -result 1
+#>>>
+
+test decompress-1.1 {Basic decompress case} -setup { #<<<
+	set plain		[encoding convertto utf-8 [readfile [info script]]]
+	set encbytes	[::brotli::compress $plain]
+} -body {
+	expr {
+		[::brotli::decompress $encbytes] eq $plain
+	}
+} -cleanup {
+	unset -nocomplain plain encbytes
+} -result 1
+#>>>
+test decompress-2.1 {decompress with size hint: exactly correct} -setup { #<<<
+	set plain		[encoding convertto utf-8 [readfile [info script]]]
+	set encbytes	[::brotli::compress $plain]
+} -body {
+	expr {
+		[::brotli::decompress $encbytes [string length $plain]] eq $plain
+	}
+} -cleanup {
+	unset -nocomplain plain encbytes
+} -result 1
+#>>>
+test decompress-2.2 {decompress with size hint: zero} -setup { #<<<
+	set plain		[encoding convertto utf-8 [readfile [info script]]]
+	set encbytes	[::brotli::compress $plain]
+} -body {
+	expr {
+		[::brotli::decompress $encbytes 0] eq $plain
+	}
+} -cleanup {
+	unset -nocomplain plain encbytes
+} -result 1
+#>>>
+test decompress-2.3 {decompress with size hint: too small} -setup { #<<<
+	set plain		[encoding convertto utf-8 [readfile [info script]]]
+	set encbytes	[::brotli::compress $plain]
+} -body {
+	expr {
+		[::brotli::decompress $encbytes [expr {max(1, [string length $plain] / 3)}]] eq $plain
+	}
+} -cleanup {
+	unset -nocomplain plain encbytes
+} -result 1
+#>>>
+test decompress-2.4 {decompress with size hint: too big} -setup { #<<<
+	set plain		[encoding convertto utf-8 [readfile [info script]]]
+	set encbytes	[::brotli::compress $plain]
+} -body {
+	expr {
+		[::brotli::decompress $encbytes [expr {[string length $plain] * 3}]] eq $plain
+	}
+} -cleanup {
+	unset -nocomplain plain encbytes
+} -result 1
+#>>>
+test decompress-2.5 {decompress with size hint: negative} -setup { #<<<
+	set plain		[encoding convertto utf-8 [readfile [info script]]]
+	set encbytes	[::brotli::compress $plain]
+} -body {
+	expr {
+		[::brotli::decompress $encbytes -1] eq $plain
+	}
+} -cleanup {
+	unset -nocomplain plain encbytes
+} -returnCodes error -result {sizehint may not be negative}
 #>>>
 
 if 0 {

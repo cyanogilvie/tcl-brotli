@@ -1,7 +1,6 @@
 Makefile
 configure
 pkgIndex.tcl
-tclconfig
 brotliConfig.sh
 generic/brotli.h
 autom4te.cache
@@ -13,3 +12,4 @@ tags
 *.a
 *.swp
 configure~
+last
