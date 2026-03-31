@@ -116,7 +116,7 @@ done:
 //}}}
 void* custom_alloc(void* opaque, size_t size) //{{{
 {
-	ckalloc(size);
+	return ckalloc(size);
 }
 
 //}}}
@@ -161,6 +161,7 @@ static int decompress_cmd(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Ob
 	available_out = sizehint;
 
 	s = BrotliDecoderCreateInstance(custom_alloc, custom_free, NULL);
+	//s = BrotliDecoderCreateInstance(NULL, NULL, NULL);
 
 	for (;;) {
 		BrotliDecoderResult	result = BrotliDecoderDecompressStream(s, &available_in, &next_in, &available_out, &next_out, &total_out);
@@ -170,7 +171,7 @@ static int decompress_cmd(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Ob
 				goto success;
 
 			case BROTLI_DECODER_RESULT_ERROR:
-				THROW_ERROR_LABEL(finally, code, BrotliDecoderErrorString(BrotliDecoderGetErrorCode(s)));
+				THROW_ERROR_LABEL(finally, code, "Brotli decompress error: ", BrotliDecoderErrorString(BrotliDecoderGetErrorCode(s)));
 
 			case BROTLI_DECODER_RESULT_NEEDS_MORE_INPUT:
 				THROW_ERROR_LABEL(finally, code, "Input is truncated");

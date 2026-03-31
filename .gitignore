@@ -13,3 +13,4 @@ tags
 *.swp
 configure~
 last
+bench/test.tcl
