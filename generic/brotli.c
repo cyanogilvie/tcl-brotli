@@ -1,6 +1,7 @@
 #include "brotliInt.h"
 
-//#define STRINGIFY(x) #x
+#define STRINGIFY2(x) #x
+#define STRINGIFY(x) STRINGIFY2(x)
 
 // Internal API {{{
 //}}}
@@ -9,6 +10,7 @@
 
 static int compress_cmd(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]) //{{{
 {
+	(void)cdata;
 	int					retcode = TCL_OK;
 	int					i, index;
 	static const char*	option_str[] = {
@@ -25,7 +27,7 @@ static int compress_cmd(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj*
 		TBROTLI_COMPRESS_LARGEWINDOW
 	};
 	const unsigned char*		bytes;
-	int				byteslen;
+	Tcl_Size			byteslen;
 	static const char*	mode_str[] = {
 		"generic",
 		"text",
@@ -116,21 +118,24 @@ done:
 //}}}
 void* custom_alloc(void* opaque, size_t size) //{{{
 {
+	(void)opaque;
 	return ckalloc(size);
 }
 
 //}}}
 void custom_free(void* opaque, void* address) //{{{
 {
+	(void)opaque;
 	ckfree(address);
 }
 
 //}}}
 static int decompress_cmd(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]) //{{{
 {
+	(void)cdata;
 	int						code = TCL_OK;
 	const unsigned char*	enc_bytes = NULL;
-	int						enc_len;
+	Tcl_Size				enc_len;
 	int						sizehint = 0;
 	BrotliDecoderState*		s = NULL;
 	uint8_t*				out = NULL;

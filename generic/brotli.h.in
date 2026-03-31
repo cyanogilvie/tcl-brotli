@@ -1,5 +1,10 @@
 #include <tcl.h>
 
+/* Tcl_Size compat for Tcl 8 */
+#ifndef TCL_SIZE_MAX
+typedef int Tcl_Size;
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -20,7 +25,7 @@ extern const char* BrotliInitializeStubs(Tcl_Interp* interp);
 
 #include "brotliDecls.h"
 
-EXTERN int Brotli_Init _ANSI_ARGS_((Tcl_Interp * interp));
+EXTERN int Brotli_Init(Tcl_Interp *interp);
 
 #ifdef __cplusplus
 }

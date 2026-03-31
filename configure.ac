@@ -19,7 +19,7 @@ dnl	to configure the system for the local environment.
 # so that we create the export library with the dll.
 #-----------------------------------------------------------------------
 
-AC_INIT([brotli], [0.3])
+AC_INIT([brotli], [0.4])
 
 #--------------------------------------------------------------------
 # Call TEA_INIT as the first TEA_ macro to set up initial vars.
@@ -76,8 +76,8 @@ TEA_SETUP_COMPILER
 TEA_ADD_SOURCES([brotli.c brotliStubInit.c])
 TEA_ADD_HEADERS([generic/brotli.h generic/brotliDecls.h])
 TEA_ADD_INCLUDES([])
-TEA_ADD_LIBS([`pkg-config --libs libbrotlienc libbrotlidec libbrotlicommon`])
-TEA_ADD_CFLAGS([`pkg-config --cflags libbrotlienc libbrotlidec libbrotlicommon`])
+TEA_ADD_LIBS([`pkg-config --static --libs libbrotlienc libbrotlidec`])
+TEA_ADD_CFLAGS([`pkg-config --static --cflags libbrotlienc libbrotlidec`])
 TEA_ADD_STUB_SOURCES([brotliStubLib.c])
 TEA_ADD_TCL_SOURCES([])
 
@@ -168,6 +168,16 @@ TEA_MAKE_LIB
 
 TEA_PROG_TCLSH
 #TEA_PROG_WISH
+
+#--------------------------------------------------------------------
+# Generate stubs files if they don't exist (e.g. fresh clone where
+# generated files are gitignored).
+#--------------------------------------------------------------------
+
+if test ! -f "${srcdir}/generic/brotliStubInit.c"; then
+    AC_MSG_NOTICE([Generating stubs files...])
+    ${TCLSH_PROG} ${srcdir}/teabase/tools/genStubs.tcl ${srcdir}/generic ${srcdir}/generic/brotli.decls
+fi
 
 #--------------------------------------------------------------------
 # Setup a *Config.sh.in configuration file.
