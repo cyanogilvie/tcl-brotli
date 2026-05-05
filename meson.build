@@ -1,5 +1,5 @@
 project('brotli', 'c',
-  version:          '0.4.1',
+  version:          '0.4.2',
   default_options:  ['c_std=c11', 'warning_level=3', 'werror=true'],
   meson_version:    '>=1.3.0',
 )
@@ -70,8 +70,9 @@ configure_file(
   input:          meson.project_name() + '.pc.in',
   output:         meson.project_name() + '.pc',
   configuration:  pc_conf,
-  install:        not meson.is_subproject(),
+  install:        true,
   install_dir:    tcl_dep.get_variable('libdir') / 'pkgconfig',
+  install_tag:    meson.is_subproject() ? 'deps' : 'runtime',
 )
 
 # Override-dependency for meson subproject consumers. See parse_args.
