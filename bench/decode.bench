@@ -1,8 +1,3 @@
-if {"bench" ni [info commands bench]} {
-	package require bench
-	namespace import bench::*
-}
-
 package require brotli
 
 proc readfile fn { #<<<

@@ -1,6 +1,6 @@
 project('brotli', 'c',
-  version:          '0.4.2',
-  default_options:  ['c_std=c11', 'warning_level=3', 'werror=true'],
+  version:          '0.4.3',
+  default_options:  ['c_std=gnu2y,gnu23,gnu2x', 'warning_level=3', 'werror=true'],
   meson_version:    '>=1.3.0',
 )
 
@@ -25,25 +25,20 @@ inc = []
 
 # Package sources
 pkg_sources = files(
-  'generic/brotli.c',
+  'brotli.c',
 )
+
+inc += include_directories('.')
+
+tea_want_shims = []
+tea_want_shims += 'Tcl_GetBytesFromObj'
+tea_want_defer = true
+
+tea_genstubs = files('brotli.decls', 'brotliStubLib.c')
 
 # --- Teabase init (must come first) ---
 # Provides: pkg_dir, tclsh, tcl_dep, teaconf
 subdir('teabase/init')
-
-# --- Stubs generation via custom_target ---
-deps += declare_dependency(
-  sources: custom_target('genstubs',
-    output: ['brotliStubInit.c', 'brotliDecls.h'],
-    command: [
-      tclsh,
-      meson.project_source_root() / 'teabase/tools/genStubs.tcl',
-      meson.project_build_root(),
-      meson.project_source_root() / 'generic/brotli.decls',
-    ],
-  ),
-)
 
 # --- External dependencies (brotli library, prefer static) ---
 deps += dependency('libbrotlienc', static: true)
@@ -56,7 +51,7 @@ subdir('teabase')
 # --- Configure the public header from .h.in ---
 pkg_sources += configure_file(
   configuration:  teaconf,
-  input:          'generic/brotli.h.in',
+  input:          'brotli.h.in',
   output:         '@BASENAME@',
   install_dir:    pkg_dir,
 )
