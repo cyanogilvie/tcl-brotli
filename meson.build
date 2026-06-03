@@ -1,5 +1,5 @@
 project('brotli', 'c',
-  version:          '0.4.3',
+  version:          '0.4.4',
   default_options:  ['c_std=gnu2y,gnu23,gnu2x', 'warning_level=3', 'werror=true'],
   meson_version:    '>=1.3.0',
 )
@@ -72,6 +72,10 @@ configure_file(
 
 # Override-dependency for meson subproject consumers. See parse_args.
 brotli_dep = declare_dependency(
+  link_with:            stubs_lib,
+  sources:              genstubs[1],
+  include_directories:  inc,
+  compile_args:         '-DUSE_BROTLI_STUBS=1',
   variables: {
     'tcl_pkg_path': fs.parent(pkg_so.full_path()),
     'version':      meson.project_version(),
