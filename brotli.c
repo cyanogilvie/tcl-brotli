@@ -1,7 +1,9 @@
 #include <brotliInt.h>
 
-#define STRINGIFY2(x) #x
-#define STRINGIFY(x) STRINGIFY2(x)
+#ifndef STRINGIFY	/* tcl.h provides it on 8.7 */
+#	define STRINGIFY1(x) #x
+#	define STRINGIFY(x) STRINGIFY1(x)
+#endif
 
 // Internal API <<<
 //>>>
