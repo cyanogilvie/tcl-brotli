@@ -1,5 +1,5 @@
 project('brotli', 'c',
-  version:          '0.4.6',
+  version:          '0.4.7',
   default_options:  ['c_std=gnu2y,gnu23,gnu2x', 'warning_level=3', 'werror=true'],
   meson_version:    '>=1.3.0',
 )
@@ -41,8 +41,8 @@ tea_genstubs = files('brotli.decls', 'brotliStubLib.c')
 subdir('teabase/init')
 
 # --- External dependencies (brotli library, prefer static) ---
-deps += dependency('libbrotlienc', static: true)
-deps += dependency('libbrotlidec', static: true)
+deps += dependency('libbrotlienc', static: true, version: '>=1.2.1')
+deps += dependency('libbrotlidec', static: true, version: '>=1.2.1')
 #deps += dependency('libbrotlicommon', static: true)
 
 # --- Teabase main (builds shared_module, sets up tests) ---
